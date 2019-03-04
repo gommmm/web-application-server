@@ -27,35 +27,34 @@ public class RequestHandler extends Thread {
                 connection.getPort());
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-        	String path = getPath(in);
-        	
+        	String requestPath = getRequestPath(in);
         	// TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
             DataOutputStream dos = new DataOutputStream(out);
-            byte[] body = getContent(path);
-            response200Header(dos, body.length);
+            byte[] body = getBody(requestPath);
+            responseHeader(dos, body.length);
             responseBody(dos, body);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-	private String getPath(InputStream in) throws IOException {
+	private String getRequestPath(InputStream in) throws IOException {
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
 		String clientMessage = bufferedReader.readLine();
 		String[] messages = clientMessage.split(" ");
 		return messages[1];
 	}
 	
-	private byte[] getContent(String path) throws IOException {
-		byte[] content = "Hello World".getBytes();
+	private byte[] getBody(String path) throws IOException {
+		byte[] body = "Hello World".getBytes();
     	if(path.equals("/index.html")) {
-    		content = Files.readAllBytes(new File("./webapp" + path).toPath());
+    		body = Files.readAllBytes(new File("./webapp" + path).toPath());
     	}
 		
-		return content;
+		return body;
 	}
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void responseHeader(DataOutputStream dos, int lengthOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
